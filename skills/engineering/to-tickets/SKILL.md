@@ -37,6 +37,8 @@ Break the work into **tracer bullet** tickets.
 
 Give each ticket its **blocking edges**: the other tickets that must complete before it can start. A ticket with no blockers can start immediately.
 
+Two tickets that edit the same file don't block each other unless one needs the other's result. If both can start immediately, add a note to each ticket that whichever merges second has to rebase. A false edge serializes the work for nothing.
+
 **Wide refactors are the exception to vertical slicing.** A **wide refactor** is one mechanical change (rename a column, retype a shared symbol) whose **blast radius** fans across the whole codebase, so a single edit breaks thousands of call sites at once and no vertical slice can land green. Don't force it into a tracer bullet; sequence it as **expand–contract**. First expand: add the new form beside the old so nothing breaks. Then migrate the call sites over in batches sized by blast radius (per package, per directory), each batch its own ticket blocked by the expand, keeping CI green batch to batch because the old form still exists. Finally contract: delete the old form once no caller remains, in a ticket blocked by every migrate batch. When even the batches can't stay green alone, keep the sequence but let them share an integration branch that all block a final integrate-and-verify ticket; green is promised only there.
 
 ### 4. Quiz the user
@@ -53,7 +55,7 @@ Ask the user:
 - Are the blocking edges correct: does each ticket only depend on tickets that genuinely gate it?
 - Should any tickets be merged or split further?
 
-Iterate until the user approves the breakdown.
+Iterate until the user approves the breakdown. If the user asks you to publish again without requesting changes, take that as approval. Say which breakdown you published.
 
 ### 5. Publish the tickets to the configured tracker
 
@@ -61,6 +63,11 @@ Publish the approved tickets. **How** depends on the tracker `/setup-matt-pocock
 
 - **Local files** → write one file per ticket under `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01` in dependency order (blockers first). Each file's "Blocked by" lists the numbers/titles it depends on. Use the per-ticket file template below: one ticket per file, never a single combined file.
 - **A real issue tracker (GitHub, Linear, …)** → publish one issue per ticket in dependency order (blockers first) so each ticket's blocking edges can reference real identifiers. Use the platform's native blocking / sub-issue relationship where it has one; otherwise set each ticket's "Blocked by" to the blocking issues. Apply the `ready-for-agent` triage label unless instructed otherwise; the tickets are agent-grabbable by construction.
+  - Before you label anything, check what `ready-for-agent` sets off on that tracker. If it starts automatic pickup, publish only after the user explicitly approves.
+  - Label the leaf tickets only. A spec parent is a plan, and labeling it invites a builder to take on the whole spec at once.
+  - Before you create anything, search the tracker for duplicates and check that the target branch hasn't changed under the evidence.
+  - Make each create idempotent and read the result back before you report it. The GitHub recipe, including sub-issue linking and the Hermes factory handoff, is in [references/github-publishing.md](references/github-publishing.md).
+  - In the Hermes factory, the GitHub issue is the ticket, and a builder card is created from it. Publishing doesn't dispatch anything. Builders start only through the coordinator's intake.
 
 Work the **frontier**: any ticket whose blockers are all done. For a purely linear chain that means top to bottom.
 
