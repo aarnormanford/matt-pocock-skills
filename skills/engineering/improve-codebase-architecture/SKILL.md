@@ -21,6 +21,8 @@ This command is _informed_ by the project's domain model and built on a shared d
 
 - If the user named a direction (a module, a subsystem, a pain point), take it, and skip the inference below.
 - Otherwise, walk back a good stretch of the commit history (`git log --oneline`) to find the codebase's hot spots, the files and areas that keep coming up, and let those paths pull your attention first. If the changes are scattered with no clear hot spot, widen the net.
+- Use `--since-as-filter`, not `--since`, for date windows. `--since` stops at the first commit older than the cutoff, so one wrongly dated commit silently truncates the history. Recipes for snapshots, hot spots, co-change evidence and scoring an outside smell checklist are in [references/history-evidence.md](references/history-evidence.md).
+- Before listing a candidate, check the repo's own remediation plans and large-file or ownership registers. If a plan step already owns it, cite that step and don't propose a second plan for the same file.
 
 Read the project's domain glossary (`GLOSSARY.md`) and any ADRs in the area you're touching first.
 
